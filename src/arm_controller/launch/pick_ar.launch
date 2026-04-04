@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find arm_controller)/launch/arm_controller.launch"/>
+	<node pkg="arm_controller" type="pick_ar" name="pick_ar" output="screen"/>
+</launch>

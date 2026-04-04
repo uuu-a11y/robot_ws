@@ -1,0 +1,17 @@
+<launch>
+  <!-- Arguments -->
+  <arg name="slam_methods" default="gmapping" doc="slam type [gmapping, cartographer]"/>
+
+  <!--加载oryxbot model description-->
+  <include file="$(find oryxbot_description)/launch/load_urdf.launch" />
+  <!-- oryxbot base & kinematics-->  
+  <include file="$(find rei_robot_base)/launch/base.launch" /> 
+  <include file="$(find robot_joy)/launch/robot_joy.launch" />
+
+	<!--laser sensor激光雷达-->
+	<include file="$(find cspc_lidar)/launch/oryxbot_lidar.launch" />
+
+  <!-- SLAM: Gmapping, Cartographer -->
+  <include file="$(find oryxbot_slam)/launch/oryxbot_$(arg slam_methods).launch"/>   
+
+</launch>

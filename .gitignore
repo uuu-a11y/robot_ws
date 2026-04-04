@@ -1,0 +1,28 @@
+# ROS编译产物
+build/
+devel/
+logs/
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ROS日志
+*.log
+~/.ros/log/*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PDF (tf frames)
+frames.pdf
+frames.log
+
+# Gazebo
+~/.gazebo/

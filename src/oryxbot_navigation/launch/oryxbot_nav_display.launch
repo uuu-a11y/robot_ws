@@ -1,0 +1,5 @@
+<launch>
+  <!-- rviz -->
+    <node pkg="rviz" type="rviz" name="rviz"
+          args="-d $(find oryxbot_navigation)/rviz/navigation.rviz"/>
+</launch>

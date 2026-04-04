@@ -1,0 +1,4 @@
+arm_controller/control pose
+---
+string message
+bool success

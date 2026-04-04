@@ -1,0 +1,4 @@
+uint16 angle
+---
+string message
+bool success

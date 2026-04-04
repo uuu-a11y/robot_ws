@@ -1,0 +1,33 @@
+<!--                                                                            
+  oryxbot navigation simulation:
+  - gazebo
+  - map_server
+  - move_base
+  - amcl
+  - rviz view
+ --> 
+
+<launch>
+    <arg name="map_file_name" default="home"/>
+    <arg name="map_directory" default="$(env MAP_DIRECTORY)"/>
+	<!--加载oryxbot model description-->
+    <include file="$(find oryxbot_description)/launch/load_urdf.launch" />
+	<!--map_server-->
+	<include file="$(find map_manager)/launch/map_load.launch">
+		<arg name="map_file" value="$(arg map_file_name)"/>
+		<arg name="map_directory" value="$(arg map_directory)"/>
+	</include>
+	<!--move_base-->
+	<include file="$(find oryxbot_navigation)/launch/move_base.launch"/>
+	<!-- oryxbot base & kinematics-->  
+    <include file="$(find rei_robot_base)/launch/base.launch" /> 
+	<!--laser sensor激光雷达-->
+	<include file="$(find cspc_lidar)/launch/oryxbot_lidar.launch" />
+	<!--amcl-->
+	<include file="$(find oryxbot_navigation)/launch/amcl.launch"/>
+	<!--virtual wall map publisher-->
+	<node name="virtual_wall_map_publisher" pkg="ros_map_edit" type="virtual_wall_map_publisher.py">
+		<param name="map_file" value="$(arg map_directory)/$(arg map_file_name).yaml"/>
+	</node>
+	<!--  **************** Visualisation ****************  -->
+</launch>
