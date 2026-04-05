@@ -1,0 +1,57 @@
+{
+  "arm_positions": {
+    "safe": {
+      "x": 150,
+      "y": 0,
+      "z": 100
+    },
+    "camera": {
+      "x": 90,
+      "y": 120,
+      "z": 100
+    },
+    "table_place": {
+      "x": 60,
+      "y": -230,
+      "z": 30
+    },
+    "buffer_front": {
+      "x": 110,
+      "y": 120,
+      "z": 40
+    },
+    "buffer_back": {
+      "x": 110,
+      "y": 180,
+      "z": 40
+    },
+    "table_camera": {
+      "x": 110,
+      "y": -170,
+      "z": 100
+    }
+  },
+  "nav_points": {
+    "start": {
+      "x": 0.0,
+      "y": 0.0,
+      "ar_id": 0
+    },
+    "station_5": {
+      "x": 0.6,
+      "y": 1.2,
+      "ar_id": 1
+    },
+    "station_1": {
+      "x": 2.0,
+      "y": 2.2,
+      "ar_id": 1
+    }
+  },
+  "settings": {
+    "align_dist": 0.25,
+    "nav_wait_time": 10.0,
+    "ar_target_1": 3,
+    "ar_target_2": 9
+  }
+}

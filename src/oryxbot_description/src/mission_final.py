@@ -13,12 +13,12 @@ from ar_pose.srv import Track
 START_X = 0.0
 START_Y = 0.0
 
-STATION_5_X = 0.60
-STATION_5_Y = 1.20
+STATION_5_X = 0.6
+STATION_5_Y = 1.2
 STATION_5_AR_ID = 1
 
-STATION_1_X = 2.00
-STATION_1_Y = 2.20
+STATION_1_X = 2.0
+STATION_1_Y = 2.2
 STATION_1_AR_ID = 1
 
 # ================= 机械臂坐标 (单位: mm) =================
@@ -30,9 +30,21 @@ CAMERA_X = 90
 CAMERA_Y = 120
 CAMERA_Z = 100
 
-TABLE_X = 80
-TABLE_Y = -190
-TABLE_Z = 30
+TABLE_PLACE_X = 60
+TABLE_PLACE_Y = -230
+TABLE_PLACE_Z = 30
+
+BUFFER_FRONT_X = 110
+BUFFER_FRONT_Y = 120
+BUFFER_FRONT_Z = 40
+
+BUFFER_BACK_X = 110
+BUFFER_BACK_Y = 180
+BUFFER_BACK_Z = 40
+
+TABLE_CAMERA_X = 110
+TABLE_CAMERA_Y = -170
+TABLE_CAMERA_Z = 100
 
 # ================= AR物块ID =================
 AR_TARGET_1 = 3
@@ -151,9 +163,9 @@ class FinalMission:
         print(f"   [视觉抓取] 识别并抓取 AR-{ar_id}")
 
         target = control()
-        target.position.x = TABLE_X
-        target.position.y = TABLE_Y
-        target.position.z = TABLE_Z
+        target.position.x = TABLE_PLACE_X
+        target.position.y = TABLE_PLACE_Y
+        target.position.z = TABLE_PLACE_Z
         target.roll = 0.0
         target.pitch = 0.0
         target.yaw = 0.0
@@ -202,7 +214,7 @@ class FinalMission:
             self.visual_grab(AR_TARGET_1)
 
             print(">>> 步骤5: 机械臂移动到台面放置位置")
-            self.move_arm(TABLE_X, TABLE_Y, TABLE_Z)
+            self.move_arm(TABLE_PLACE_X, TABLE_PLACE_Y, TABLE_PLACE_Z)
 
             print(">>> 步骤6: 停止气泵")
             self.pump_off()
@@ -226,7 +238,7 @@ class FinalMission:
             self.visual_grab(AR_TARGET_2)
 
             print(">>> 步骤12: 机械臂移动到台面放置位置")
-            self.move_arm(TABLE_X, TABLE_Y, TABLE_Z)
+            self.move_arm(TABLE_PLACE_X, TABLE_PLACE_Y, TABLE_PLACE_Z)
 
             print(">>> 步骤13: 停止气泵")
             self.pump_off()
