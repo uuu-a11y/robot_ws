@@ -5,12 +5,13 @@
   </include>
   <param name="robot_description"
     command="$(find xacro)/xacro $(find oryxbot_description)/xacro/oryxbot.xacro sim:=1" />
-  <node
+  <!-- 机器人已在world文件中定义，无需重复spawn -->
+  <!-- <node
     name="spawn_model"
     pkg="gazebo_ros"
     type="spawn_model"
     args="-param robot_description -urdf -model oryxbot"
-    output="screen" />
+    output="screen" /> -->
   <rosparam command="load" file="$(find oryxbot_description)/config/arm_controllers.yaml"/>
   <node name="spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" ns="/swiftpro"
