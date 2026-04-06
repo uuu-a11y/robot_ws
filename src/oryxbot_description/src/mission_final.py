@@ -21,10 +21,27 @@ STATION_1_X = 2.0
 STATION_1_Y = 2.2
 STATION_1_AR_ID = 1
 
+STATION_4_X = 0.6
+STATION_4_Y = 2.2
+STATION_4_AR_ID = 1
+
+STATION_3_X = 2.2
+STATION_3_Y = 0.2
+STATION_3_AR_ID = 1
+
+STATION_2_X = 2.2
+STATION_2_Y = 1.2
+STATION_2_AR_ID = 1
+
+CHARGING_STATION_X = 0.4
+CHARGING_STATION_Y = 2.0
+CHARGING_STATION_AR_ID = 0
+CHARGING_STATION_ANGLE = 90
+
 # ================= 机械臂坐标 (单位: mm) =================
 SAFE_X = 150
 SAFE_Y = 0
-SAFE_Z = 200
+SAFE_Z = 100
 
 CAMERA_X = 90
 CAMERA_Y = 120
@@ -88,7 +105,8 @@ class FinalMission:
 
         print(">>> 连接成功！\n")
 
-    def navigate_to(self, x, y):
+    def navigate_to(self, x, y, angle=None):
+        import math
         print(f"   [SLAM导航] 目标: ({x:.2f}, {y:.2f})")
 
         goal = PoseStamped()
@@ -97,10 +115,18 @@ class FinalMission:
         goal.pose.position.x = x
         goal.pose.position.y = y
         goal.pose.position.z = 0.0
-        goal.pose.orientation.x = 0.0
-        goal.pose.orientation.y = 0.0
-        goal.pose.orientation.z = 0.0
-        goal.pose.orientation.w = 1.0
+
+        if angle is not None:
+            yaw_rad = math.radians(angle)
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = 0.0
+            goal.pose.orientation.z = math.sin(yaw_rad / 2)
+            goal.pose.orientation.w = math.cos(yaw_rad / 2)
+        else:
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = 0.0
+            goal.pose.orientation.z = 0.0
+            goal.pose.orientation.w = 1.0
 
         self.pub_goal.publish(goal)
         print(f"   [SLAM导航] 目标已发送，等待 {NAV_WAIT_TIME} 秒...")

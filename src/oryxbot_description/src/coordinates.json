@@ -8,7 +8,9 @@
     "camera": {
       "x": 90,
       "y": 120,
-      "z": 100
+      "z": 100,
+      "name": "摄像头位置",
+      "description": "面向储物槽，用于观察储物槽"
     },
     "table_place": {
       "x": 60,
@@ -28,7 +30,9 @@
     "table_camera": {
       "x": 110,
       "y": -170,
-      "z": 100
+      "z": 100,
+      "name": "台面相机位",
+      "description": "面向台面，用于观察台面"
     }
   },
   "nav_points": {
@@ -46,6 +50,27 @@
       "x": 2.0,
       "y": 2.2,
       "ar_id": 1
+    },
+    "station_4": {
+      "x": 0.6,
+      "y": 2.2,
+      "ar_id": 1
+    },
+    "station_3": {
+      "x": 2.2,
+      "y": 0.2,
+      "ar_id": 1
+    },
+    "station_2": {
+      "x": 2.2,
+      "y": 1.2,
+      "ar_id": 1
+    },
+    "charging_station": {
+      "x": 0.4,
+      "y": 2.0,
+      "ar_id": 0,
+      "angle": 90
     }
   },
   "settings": {

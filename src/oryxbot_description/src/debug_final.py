@@ -355,18 +355,26 @@ class UnifiedDebug:
         except:
             pass
 
-    def navigate_to(self, x, y):
-        print(f"\n[导航] 目标: ({x:.2f}, {y:.2f})")
+    def navigate_to(self, x, y, angle=None):
+        import math
+        print(f"\n[导航] 目标: ({x:.2f}, {y:.2f})" + (f", 朝向: {angle}°" if angle is not None else ""))
         goal = PoseStamped()
         goal.header.frame_id = 'map'
         goal.header.stamp = rospy.Time.now()
         goal.pose.position.x = float(x)
         goal.pose.position.y = float(y)
         goal.pose.position.z = 0.0
-        goal.pose.orientation.x = 0.0
-        goal.pose.orientation.y = 0.0
-        goal.pose.orientation.z = 0.0
-        goal.pose.orientation.w = 1.0
+        if angle is not None:
+            yaw_rad = math.radians(angle)
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = 0.0
+            goal.pose.orientation.z = math.sin(yaw_rad / 2)
+            goal.pose.orientation.w = math.cos(yaw_rad / 2)
+        else:
+            goal.pose.orientation.x = 0.0
+            goal.pose.orientation.y = 0.0
+            goal.pose.orientation.z = 0.0
+            goal.pose.orientation.w = 1.0
         self.pub_goal.publish(goal)
         settings = self.coord_mgr.data.get('settings', {})
         wait = settings.get('nav_wait_time', NAV_WAIT_TIME)
@@ -377,8 +385,9 @@ class UnifiedDebug:
     def go_to_nav_point(self, name):
         coord = self.coord_mgr.get_nav_coord(name)
         if coord:
-            self.navigate_to(coord['x'], coord['y'])
-            if coord.get('ar_id', 0) > 0:
+            angle = coord.get('angle')
+            self.navigate_to(coord['x'], coord['y'], angle)
+            if coord.get('ar_id', -1) >= 0:
                 self.ar_align(coord['ar_id'])
             return True
         return False
