@@ -1,6 +1,6 @@
 # Robot Workspace
 
-机械臂+导航综合控制系统
+机械臂 + 自主导航综合控制系统（ROS Noetic）
 
 ## 系统要求
 
@@ -8,208 +8,223 @@
 - ROS Noetic
 - Python 3.8+
 
-## 安装依赖
+## 快速开始
 
-### 1. ROS依赖
+### 1. 安装 ROS 依赖
 
 ```bash
-# 安装ROS包
 sudo apt update
 sudo apt install -y \
     ros-noetic-slam-gmapping \
     ros-noetic-navigation \
     ros-noetic-teb-local-planner \
     ros-noetic-joy \
-    ros-noetic-map-server
-```
+    ros-noetic-map-server \
+    ros-noetic-moveit \
+    ros-noetic-ros-control \
+    ros-noetic-ros-controllers \
+    ros-noetic-gazebo-ros-control \
+    ros-noetic-joint-state-controller \
+    ros-noetic-effort-controllers \
+    ros-noetic-position-controllers \
+    ros-noetic-driver-base \
+    ros-noetic-ackermann-msgs
 
-### 2. Python依赖
-
-```bash
-# Python包通常已随ROS安装
-# 如有需要
 pip3 install rospkg
 ```
 
-### 3. 编译工作空间
+### 2. 下载 ar_track_alvar 源码
+
+```bash
+cd ~/robot_ws/src
+git clone https://gitee.com/reinovo/ar_track_alvar.git
+```
+
+### 3. 配置 Gazebo 插件
+
+本项目使用 contact_plugin 进行物块碰撞检测：
+
+```bash
+# 下载插件源码（如还没有）
+git clone https://gitee.com/xk-fly/moliyuanbao.git /tmp/moliyuanbao
+cp -r /tmp/moliyuanbao/gazebo_plugins ~/
+
+# 配置环境变量（Ubuntu 20.04）
+echo 'export GAZEBO_PLUGIN_PATH=${GAZEBO_PLUGIN_PATH}:~/gazebo_plugins/contact_plugin_20-04_g11' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 4. 配置 Gazebo 模型
+
+将场地模型复制到 Gazebo 模型目录：
+
+```bash
+cp -r /tmp/moliyuanbao/models/* ~/.gazebo/models/
+```
+
+模型包括：AR 轨道码（id1-id9）、围栏、加工台、充电桩、地图等。
+
+### 5. 编译
 
 ```bash
 cd ~/robot_ws
 source /opt/ros/noetic/setup.bash
 catkin_make
 source devel/setup.bash
+
+# 永久生效（可选）
+echo "source ~/robot_ws/devel/setup.bash" >> ~/.bashrc
 ```
 
-## 文件结构
+## 启动脚本
 
-```
-robot_ws/
-├── src/
-│   ├── arm_controller/          # 机械臂控制
-│   ├── ar_pose/                 # AR识别
-│   ├── ar_track_alvar/          # AR追踪
-│   ├── relative_move/           # 相对移动控制
-│   ├── oryxbot_description/     # 机器人描述
-│   ├── oryxbot_navigation/      # 导航包
-│   └── oryxbot_slam/            # SLAM建图包
-├── maps/                         # 地图文件
-├── start_final_mission.sh       # 最终任务启动脚本
-├── start_arm_test.sh           # 机械臂测试脚本
-├── start_nav_test.sh           # 导航测试脚本
-├── start_nav_slam.sh           # SLAM导航脚本
-└── COORDINATE_GUIDE.md          # 坐标配置指南
-```
+| 脚本 | 用途 |
+|------|------|
+| `./start_robot.sh` | **综合调试环境**（推荐日常使用） |
+| `./start_llm_mission.sh` | LLM 智能任务规划 |
+| `./start_final_mission.sh` | 固定路线任务（5号→1号工位） |
+| `./start_arm_test.sh` | 机械臂单独测试 |
+| `./start_nav_slam.sh` | SLAM 建图 + 导航测试 |
 
-## 使用说明
+### 1. 综合调试环境（推荐）
 
-### 1. 最终任务脚本
-
-执行完整的抓取任务：小车导航 → AR对准 → 机械臂抓取 → 放置
+导航 + 机械臂一体化键盘控制，Tab 切换模式：
 
 ```bash
-cd ~/robot_ws
+./start_robot.sh
+```
+
+快捷键：`H` 查看帮助，`Tab` 切换导航/机械臂，数字键 `1-6` 快速导航或机械臂预设位。
+
+### 2. LLM 任务规划
+
+通过自然语言控制机器人执行任务：
+
+```bash
+./start_llm_mission.sh
+```
+
+使用前需配置 API Key（见 [COORDINATE_GUIDE.md](./COORDINATE_GUIDE.md#六llm任务规划)）。
+
+支持的指令示例：
+- "去1号工位" → 仅导航
+- "运3号物块到5号工位" → 抓取 + 运输
+- "去充电桩" → 导航到充电站
+
+### 3. 固定路线任务
+
+自动执行：5号工位抓AR-3 → 1号工位抓AR-9 → 返回起点
+
+```bash
 ./start_final_mission.sh
 ```
 
-**任务流程**：
-1. 小车SLAM导航到5号工位 → AR对准
-2. 机械臂抓取AR-3物块 → 放置到台面
-3. 小车SLAM导航到1号工位 → AR对准
-4. 机械臂抓取AR-9物块 → 放置到台面
-5. 小车导航返回起点
-
-### 2. 机械臂测试脚本
-
-测试机械臂抓取功能
+### 4. 机械臂测试
 
 ```bash
 ./start_arm_test.sh
 ```
 
-可选功能：
-- 键盘控制
-- 菜单控制
-- 视觉抓取
-
-### 2.1 最终调试脚本 (推荐)
-
-统一调试脚本，支持键盘控制和菜单控制，无需切换模式，可管理坐标点。
-
-```bash
-cd ~/robot_ws
-source devel/setup.bash
-rosrun oryxbot_description debug_final.py
-```
-
-**快捷键：**
-| 按键 | 功能 |
-|------|------|
-| W/A/S/D | X/Y轴移动 |
-| Q/E | Z轴上下 |
-| 方向键 | 微调 |
-| 空格 | 归零 |
-| C | 进入命令菜单 |
-
-**命令菜单：**
-- 机械臂坐标：添加/删除/重命名/修改
-- 导航坐标：添加/删除/重命名/修改/导航
-- AR对准、视觉抓取
-
-### 3. 导航测试脚本
-
-测试相对移动导航
-
-```bash
-./start_nav_test.sh
-```
-
-### 4. SLAM导航脚本
-
-使用SLAM地图进行导航
+### 5. SLAM 建图 / 导航
 
 ```bash
 ./start_nav_slam.sh
+# 选1: 使用已建地图导航（推荐）
+# 选2: 实时 SLAM 建图
 ```
 
-可选功能：
-- 使用已建地图
-- 实时SLAM建图
+建好图后保存：
+```bash
+rosrun map_server map_saver -f ~/robot_ws/src/oryxbot_navigation/maps/my_map
+```
+
+## 项目结构
+
+```
+robot_ws/
+├── src/
+│   ├── oryxbot_description/    # 机器人模型 + 机械臂控制 + 任务脚本
+│   │   ├── src/
+│   │   │   ├── robot_control.py     # 综合控制台（Tab切换导航/机械臂）
+│   │   │   ├── mission_llm.py       # LLM 任务规划节点
+│   │   │   ├── mission_final.py     # 固定路线任务脚本
+│   │   │   ├── mission_controller.py # 旧版任务脚本（相对移动）
+│   │   │   ├── ik_swiftpro.cpp      # 逆运动学节点
+│   │   │   ├── pick_ar_gazebo.cpp   # 视觉抓取节点
+│   │   │   └── coordinates.json     # 导航/机械臂坐标配置
+│   │   ├── launch/                  # Gazebo仿真 + AR + 抓取 launch文件
+│   │   ├── config/                  # 控制器 + RViz 配置
+│   │   └── world/                   # Gazebo 世界文件
+│   ├── oryxbot_navigation/      # 导航包
+│   │   ├── param/                    # TEB/Costmap 参数
+│   │   ├── maps/                     # SLAM 地图文件
+│   │   └── launch/                   # AMCL + move_base launch文件
+│   ├── oryxbot_slam/            # SLAM 建图包
+│   ├── ar_pose/                 # AR 码识别 + 底盘对准
+│   ├── ar_track_alvar/          # AR 追踪库
+│   ├── arm_controller/          # 机械臂服务接口
+│   ├── relative_move/           # 相对移动（避障）
+│   └── pid_lib/                 # PID 控制库
+├── start_robot.sh               # 综合调试（推荐）
+├── start_llm_mission.sh         # LLM 任务
+├── start_final_mission.sh       # 固定路线任务
+├── start_arm_test.sh            # 机械臂测试
+├── start_nav_slam.sh            # SLAM/导航
+├── COORDINATE_GUIDE.md          # 坐标配置指南
+└── README.md
+```
 
 ## 坐标配置
 
 详见 [COORDINATE_GUIDE.md](./COORDINATE_GUIDE.md)
 
-### 机械臂坐标 (mm)
+## 自定义 AR 物料
 
-| 位置 | X | Y | Z |
-|-----|---|---|---|
-| 安全/复位 | 150 | 0 | 200 |
-| 摄像头位置 | 90 | 120 | 100 |
-| 台面放置 | 80 | -190 | 30 |
-| 前储物槽 | 110 | 120 | 40 |
-| 后储物槽 | 110 | 180 | 40 |
+如需添加新的 AR 码物块，在 `~/.gazebo/models/` 下创建模型文件夹：
 
-### 导航坐标 (m)
-
-| 位置 | X | Y |
-|-----|---|---|
-| 起点 | 0.0 | 0.0 |
-| 5号工位 | 0.60 | 1.20 |
-| 1号工位 | 2.00 | 2.20 |
-
-## SLAM建图
-
-如需重新建图：
-
-```bash
-./start_nav_slam.sh
-# 选择 2 启动SLAM建图
-
-# 用键盘控制机器人在环境中移动
-# 建好后保存地图
-rosrun map_server map_saver -f ~/robot_ws/src/oryxbot_navigation/maps/my_map
 ```
+marker_id3/
+├── materials/
+│   ├── scripts/reinovo.material   # 材质定义（关联图片纹理）
+│   └── textures/id3.png           # AR 码图片
+├── model.config                   # 模型描述
+└── model.sdf                      # 物理属性、视觉、关节
+```
+
+参考现有模型 `~/.gazebo/models/ar_track_3/` 进行修改。
+
+## 任务流程
+
+本项目对应**睿抗机器人大赛 - 魔力元宝**赛项：
+
+1. **任务一**：小车导航到5号工位 → AR对准 → 从车上 Buffer 抓取 ID-3 物块 → 放置到台面
+2. **任务二**：小车导航到1号工位 → AR对准 → 视觉识别并抓取 ID-9 物块 → 放置到车上
+3. **返回起点**
+
+场地布局：起点(0,0)、5号工位(0.6,1.2)、1号工位(2.0,2.2)、充电桩(0.4,2.0)
+
+> 详细坐标参数见 [COORDINATE_GUIDE.md](./COORDINATE_GUIDE.md)
 
 ## 调试工具
 
-### 查看话题
 ```bash
-rostopic list
-rostopic echo /topic_name
-```
-
-### 查看TF树
-```bash
-rosrun rqt_tf_tree rqt_tf_tree
-```
-
-### 查看节点
-```bash
-rosnode list
-rosnode info /node_name
-```
-
-### RViz可视化
-```bash
-rviz -d ~/robot_ws/src/oryxbot_navigation/rviz/navigation.rviz
+rostopic list                    # 查看话题
+rostopic echo /topic_name        # 监听话题
+rosnode list                     # 查看节点
+rosrun rqt_tf_tree rqt_tf_tree   # 查看 TF 树
 ```
 
 ## 故障排除
 
-### 1. move_base无法启动
-确保安装了teb_local_planner：
-```bash
-sudo apt install ros-noetic-teb-local-planner
-```
-
-### 2. 地图加载失败
-检查地图文件是否存在：
-```bash
-ls ~/robot_ws/src/oryxbot_navigation/maps/
-```
-
-### 3. AMCL定位失败
-确保在RViz中手动设置初始位置 (2D Pose Estimate)
+| 问题 | 解决方案 |
+|------|----------|
+| move_base 无法启动 | `sudo apt install ros-noetic-teb-local-planner` |
+| 地图加载失败 | 检查 `src/oryxbot_navigation/maps/my_map.yaml` 是否存在 |
+| AMCL 定位失败 | 在 RViz 中用 "2D Pose Estimate" 设置初始位置 |
+| TF 警告刷屏 | 已在启动脚本中自动抑制（ROSCONSOLE_CONFIG_FILE） |
+| Gazebo 启动失败/模型缺失 | 检查 `~/.gazebo/models/` 是否有完整模型文件 |
+| 物块碰撞不生效 | 确认 `GAZEBO_PLUGIN_PATH` 包含 contact_plugin 路径 |
+| AR 码识别不到 | 检查摄像头话题 `rostopic echo /ar_pose_marker`，确认光照和距离 |
 
 ## 许可证
 

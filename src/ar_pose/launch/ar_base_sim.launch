@@ -1,5 +1,7 @@
 <launch>
 
+	<!-- 抑制 TF_REPEATED_DATA 警告 -->
+	<env name="ROSCONSOLE_FORMAT" value=""/>
 
 	<!--ar码的边长，单位cm-->
 	<arg name="marker_size" default="5" />
@@ -7,7 +9,7 @@
 
 	<group ns="bottom_camera">
 		<!--打开individualMarkersNoKinect节点并映射为ar_track_alvar节点-->
-		<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect">
+		<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" output="log">
 			<param name="marker_size" type="double" value="$(arg marker_size)" />
 			<param name="max_new_marker_error" type="double" value="0.08" />
 			<param name="max_track_error" type="double" value="0.2" />

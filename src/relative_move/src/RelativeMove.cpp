@@ -16,12 +16,16 @@ RelativeMove::~RelativeMove() {
 int8_t RelativeMove::Init(ros::NodeHandle& nh) {
   tfBuffer_ = std::make_unique<tf2_ros::Buffer>();
   tfListener_ = std::make_shared<tf2_ros::TransformListener>(*tfBuffer_);
-  xPid_ = std::make_shared<rei_tools::ReiPID>(1.0, 0, 0.0);
-  yPid_ = std::make_shared<rei_tools::ReiPID>(1.0, 0, 0.0);
-  thetaPid_ = std::make_shared<rei_tools::ReiPID>(2.0, 0, 0.0);
-  xPid_->setOutputLimit(0.5, 0.05);
-  yPid_->setOutputLimit(0.5, 0.05);
-  thetaPid_->setOutputLimit(1.0, 0.2);
+  // PID params: Kp=1.2 with Kd=0.5 for theta - faster convergence with damping
+  // Previous: Kp=1.0/0/0.6 was too slow for small angle corrections
+  xPid_ = std::make_shared<rei_tools::ReiPID>(0.8, 0, 0.3);
+  yPid_ = std::make_shared<rei_tools::ReiPID>(0.8, 0, 0.3);
+  thetaPid_ = std::make_shared<rei_tools::ReiPID>(1.2, 0, 0.5);
+  // Lowered min limits for smooth deceleration near target
+  // Original: (0.5, 0.05), (0.5, 0.05), (1.0, 0.2)
+  xPid_->setOutputLimit(0.5, 0.01);
+  yPid_->setOutputLimit(0.5, 0.01);
+  thetaPid_->setOutputLimit(1.0, 0.05);
   relativeMoveServer_ = nh_.advertiseService(
       "relative_move", &RelativeMove::RelativeMoveCallback, this);
   velPub_ = nh_.advertise<geometry_msgs::Twist>("cmd_vel", 5);

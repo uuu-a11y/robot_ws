@@ -10,7 +10,8 @@ public:
   ReiPID(float Kp, float Ki, float Kd):kp(Kp), ki(Ki), kd(Kd){
     p_out = i_out = d_out = 0.0f;
     last_err = prev_last_err = 0.0f;
-    sum_output = integral_limit = integral_sum = output_max_limit = 0.0f;
+    sum_output = integral_sum = output_max_limit = 0.0f;
+    integral_limit = 100.0f;  // was 0, which clamped integral_sum to ±0 forever
   }
   void setP(float p){
     kp = p;
@@ -84,7 +85,9 @@ private:
   float computeLimit(float value){
     if(fabs(value) > output_max_limit)
       value = signf(value)*output_max_limit;
-    else if(fabs(value) < output_min_limit)
+    else if(output_min_limit > 0.0f && fabs(value) < output_min_limit && fabs(value) > output_min_limit * 0.3f)
+      // Only apply minimum limit when output is moderately small (30%~100% of min_limit)
+      // Below 30%, let output pass through naturally for smooth deceleration near target
       value = signf(value)*output_min_limit;
     return value;
   }

@@ -225,31 +225,16 @@ bool ArPoseAdjust::TrackCb(ar_pose::Track::Request& req,
                            ar_pose::Track::Response& res) {
   geometry_msgs::Transform targetTrans;
   targetTrans.translation.z = req.goal_dist;
-  // if (listenTfThread_.joinable()) {
-  //   res.message = "last move task still run";
-  //   return false;
-  // }
   trackFinished_ = false;
   getTargetFlag_ = false;
   targetId_ = req.ar_id;
-  ros::Rate loop(2);
+  ros::Rate loop(5);
   int step = 1;
-  geometry_msgs::Twist targetPose;
-  // std::string childFrameId = "ar_marker_" + std::to_string(req.ar_id);
-  // if (FindTarget("base_link", childFrameId) < 0) return true;
-  // SetStartFlag(true);
-  // listenTfThread_ =
-  //     std::thread(&ArPoseAdjust::ListenTf, this, "base_link", childFrameId);
-  // double lastTime = ros::Time::now().toSec();
-  // while (ros::ok() && (!GetTargetFlag())) {
-  //   if ((ros::Time::now().toSec() - lastTime) > 2) return true;
-  //   loop.sleep();
-  // }
-  
-  // geometry_msgs::Twist velCmd;
-  // xPid_->reset_integral();
-  // yPid_->reset_integral();
-  // thetaPid_->reset_integral();
+  int refineCount = 0;
+  const int maxRefineCount = 15;
+  // 振荡检测：记录上次角度误差符号，如果符号翻转说明超调
+  double lastThetaErr = 0.0;
+  int oscillationCount = 0;  geometry_msgs::Twist targetPose;
   tf2::Quaternion tmpQuat;
   tmpQuat.setRPY(roll_, pitch_, yaw_);
   while (nh_.ok()) {
@@ -262,7 +247,8 @@ bool ArPoseAdjust::TrackCb(ar_pose::Track::Request& req,
       targetTrans.rotation.w = tmpQuat.w();
       targetPose = GetTargetAheadPose(targetTrans);
     }
-    ROS_WARN("---------step:%d,err:%f",step,targetPose.angular.z);
+    ROS_INFO("AR track step:%d, err_x:%.3f, err_y:%.3f, err_theta:%.3f, refine:%d",
+             step, targetPose.linear.x, targetPose.linear.y, targetPose.angular.z, refineCount);
     switch (step) {
       case 0:
         if (FindTarget() < 0) {
@@ -283,41 +269,56 @@ bool ArPoseAdjust::TrackCb(ar_pose::Track::Request& req,
         }
         step++;
         break;
-      case 2:
-        if (fabs(targetPose.angular.z) > 0.05)
+      case 2: {
+        // 角度容差0.04rad(~2.3°)，位置容差0.008m(8mm)
+        // 振荡检测保护：符号翻转3次才停止，确保充分收敛
+        double curTheta = targetPose.angular.z;
+        if (lastThetaErr != 0.0 && (curTheta * lastThetaErr < 0)) {
+          oscillationCount++;
+          ROS_WARN("Oscillation detected! sign flip, count=%d", oscillationCount);
+        }
+        lastThetaErr = curTheta;
+
+        // 如果检测到3次以上振荡，直接完成（角度已经足够接近）
+        if (oscillationCount >= 3) {
+          ROS_INFO("Oscillation limit reached, accepting current alignment");
+          step = 5;
+        } else if (fabs(curTheta) > 0.04)
           step = 4;
-        else if ((fabs(targetPose.linear.x) > 0.01) ||
-                 (fabs(targetPose.linear.y) > 0.01))
+        else if ((fabs(targetPose.linear.x) > 0.008) ||
+                 (fabs(targetPose.linear.y) > 0.008))
           step = 3;
         else
           step = 5;
         break;
+      }
       case 3:
-        // velCmd.linear.x = xPid_->compute(0.0, targetPose.linear.x);
-        // velCmd.linear.y = yPid_->compute(0.0, targetPose.linear.y);
-        // velCmd.angular.z = 0.0;
-        // velPub_.publish(velCmd);
         if (RelativeMove(targetPose.linear.x, targetPose.linear.y, 0) < 0) {
           res.message = "RelativeMove error";
           return true;
         }
-        step = 2;
+        refineCount++;
+        step = (refineCount >= maxRefineCount) ? 5 : 2;
         break;
-      case 4:
-        // velCmd.linear.x = 0;
-        // velCmd.linear.y = 0;
-        // velCmd.angular.z = thetaPid_->compute(0.0, targetPose.angular.z);
-        // velPub_.publish(velCmd);
-        if (RelativeMove(0, 0, targetPose.angular.z) < 0) {
+      case 4: {
+        // 限制旋转量：对于小角度误差只转90%，避免超调振荡
+        double thetaToMove = targetPose.angular.z;
+        if (fabs(thetaToMove) < 0.3) {
+          thetaToMove *= 0.9;
+        }
+        if (RelativeMove(0, 0, thetaToMove) < 0) {
           res.message = "RelativeMove error";
           return true;
         }
-        step = 2;
+        refineCount++;
+        step = (refineCount >= maxRefineCount) ? 5 : 2;
         break;
+      }
       case 5:
         res.success = true;
         SetFinishedFlag(true);
-        // if (listenTfThread_.joinable()) listenTfThread_.join();
+        ROS_INFO("AR track finished: err_x=%.3f, err_y=%.3f, err_theta=%.3f",
+                 targetPose.linear.x, targetPose.linear.y, targetPose.angular.z);
         return true;
         break;
     }

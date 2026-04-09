@@ -12,7 +12,6 @@ source devel/setup.bash
 ./start_final_mission.sh   # 完整任务
 ./start_robot.sh           # 机器人完整启动
 
-rosrun oryxbot_description debug_final.py  # 统一调试脚本（推荐）
 rosrun oryxbot_description mission_llm.py   # LLM任务规划
 python3 src/oryxbot_description/src/llm_test.py  # LLM规划测试（不需要ROS）
 ```

@@ -2,6 +2,8 @@
 build/
 devel/
 logs/
+.catkin_workspace
+.catkin_tools/
 
 # Python缓存
 __pycache__/
@@ -11,18 +13,22 @@ __pycache__/
 
 # ROS日志
 *.log
-~/.ros/log/*
 
-# IDE
+# IDE / 编辑器
 .vscode/
 .idea/
+.trae/
 *.swp
 *.swo
 *~
 
-# PDF (tf frames)
+# TF调试文件
+frames.gv
 frames.pdf
 frames.log
 
-# Gazebo
-~/.gazebo/
+# CodeBuddy
+.codebuddy/
+
+# Gazebo缓存
+*.world~

@@ -10,7 +10,7 @@ bool inverse_kinematics(double position[3], double angle[3])
 	
 	z += 74.55;
 	zIn = (z - MATH_L1) / MATH_LOWER_ARM;
-	
+
 	// calculate value of theta1: the rotation angle
 	if (y == 0)
 		angleRot = 90;

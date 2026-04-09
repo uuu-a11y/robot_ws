@@ -51,22 +51,19 @@ include_directories(
 add_executable(fk_swiftpro src/fk_swiftpro.cpp)
 add_executable(ik_swiftpro src/ik_swiftpro.cpp)
 add_executable(home_pose src/home_pose.cpp)
-add_executable(simple_picker src/simple_picker.cpp)
 add_executable(pose_swiftpro src/pose_swiftpro.cpp)
 add_executable(pick_ar_gazebo src/pick_ar_gazebo.cpp)
 
 add_dependencies(fk_swiftpro ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(ik_swiftpro ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(home_pose ${PROJECT_NAME}_generate_messages_cpp)
-add_dependencies(simple_picker ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(pose_swiftpro ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(pick_ar_gazebo ${PROJECT_NAME}_generate_messages_cpp)
- 
+
 target_link_libraries(fk_swiftpro ${catkin_LIBRARIES})
 target_link_libraries(ik_swiftpro ${catkin_LIBRARIES})
-target_link_libraries(home_pose ${catkin_LIBRARIES}) 
-target_link_libraries(simple_picker ${catkin_LIBRARIES}) 
-target_link_libraries(pose_swiftpro ${catkin_LIBRARIES}) 
+target_link_libraries(home_pose ${catkin_LIBRARIES})
+target_link_libraries(pose_swiftpro ${catkin_LIBRARIES})
 target_link_libraries(pick_ar_gazebo ${catkin_LIBRARIES}) 
 
 ## Add cmake target dependencies of the executable
